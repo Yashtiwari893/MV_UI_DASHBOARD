@@ -1,18 +1,18 @@
-const express = require('express');
-const mongoose = require('mongoose');
+// STEP 1: dotenv ko sabse pehle import aur configure karein
 const dotenv = require('dotenv');
-const cors = require('cors');
-const passport = require('passport');
-const aiRoutes = require('./routes/ai.route.js');
-
-// dotenv.config() ko sabse upar rakhna best practice hai
 dotenv.config();
 
-// Ab baaki files ko import karein
+// STEP 2: Ab baaki sab kuch import karein
+const express = require('express');
+const mongoose = require('mongoose');
+const cors = require('cors');
+const passport = require('passport');
+
 const authRoutes = require('./routes/auth.route.js');
 const businessRoutes = require('./routes/business.route.js');
 const gmbRoutes = require('./routes/gmb.route.js');
-require('./config/passport-setup.js'); // Passport config ko run karne ke liye
+const aiRoutes = require('./routes/ai.route.js'); // Ab isko yahan import karein
+require('./config/passport-setup.js'); 
 
 const app = express();
 
@@ -24,8 +24,8 @@ app.use(passport.initialize());
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/business', businessRoutes);
-app.use('/api/ai', aiRoutes);
 app.use('/api/gmb', gmbRoutes);
+app.use('/api/ai', aiRoutes);
 
 // Database Connection
 const MONGO_URI = process.env.MONGO_URI;
