@@ -35,5 +35,24 @@ const listAccounts = async (req, res) => {
         res.status(500).json({ message: "Failed to fetch Google Business accounts." });
     }
 };
+const postReply = async (req, res) => {
+    try {
+        const { reviewId } = req.params;
+        const { replyText } = req.body;
 
-module.exports = { listAccounts };
+        // ABHI KE LIYE HUM SIRF CONSOLE ME LOG KARENGE
+        // JAB API APPROVAL AAYEGA, TO ASLI GOOGLE API CALL YAHAN AAYEGI
+        console.log("--- MOCK POST REPLY ---");
+        console.log(`Replying to review ID: ${reviewId}`);
+        console.log(`With text: "${replyText}"`);
+
+        // Frontend ko success ka message bhejenge
+        res.status(200).json({ message: "Reply posted successfully! (This is a MOCK response)" });
+
+    } catch (error) {
+        console.error("Error in mock postReply:", error.message);
+        res.status(500).json({ message: "Failed to post mock reply." });
+    }
+};
+
+module.exports = { listAccounts, postReply };
