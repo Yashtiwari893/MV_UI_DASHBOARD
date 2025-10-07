@@ -1,4 +1,6 @@
 const { GoogleGenerativeAI } = require("@google/generative-ai");
+const axios = require('axios');
+const FormData = require('form-data');
 
 // Initialize Gemini client with API key
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
@@ -84,5 +86,41 @@ Ensure the output is valid JSON only.
         res.status(500).json({ message: "Failed to generate AI post." });
     }
 };
+const generateImage = async (req, res) => {
+    try {
+        const { prompt } = req.body;
+        if (!prompt) {
+            return res.status(400).json({ message: "A text prompt is required." });
+        }
 
-module.exports = { generateReply, generateSocialPost };
+        const apiKey = process.env.CLIPDROP_API_KEY;
+        if (!apiKey) {
+            return res.status(500).json({ message: "ClipDrop API key is not configured." });
+        }
+
+        // form-data object banayein
+        const form = new FormData();
+        form.append('prompt', prompt);
+
+        // ClipDrop API ko call karein
+        const response = await axios.post('https://clipdrop-api.co/text-to-image/v1', form, {
+            headers: {
+                ...form.getHeaders(),
+                'x-api-key': apiKey,
+            },
+            responseType: 'arraybuffer', // Image data ko buffer ke roop me receive karein
+        });
+
+        // Image buffer ko Base64 string me convert karein
+        const imageBase64 = Buffer.from(response.data, 'binary').toString('base64');
+        const imageDataUrl = `data:image/jpeg;base64,${imageBase64}`;
+
+        // Frontend ko image data URL bhejein
+        res.status(200).json({ image: imageDataUrl });
+
+    } catch (error) {
+        console.error("Error generating ClipDrop image:", error.response?.data?.toString() || error.message);
+        res.status(500).json({ message: "Failed to generate image." });
+    }
+};
+module.exports = { generateReply, generateSocialPost, generateImage };
