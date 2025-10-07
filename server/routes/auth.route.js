@@ -1,31 +1,36 @@
 const express = require('express');
-const passport = require('passport'); // Passport ko import karein
-const jwt = require('jsonwebtoken'); // JWT ko import karein
-const { signup, login } = require('../controllers/auth.controller.js');
+const passport = require('passport');
+const jwt = require('jsonwebtoken');
+
+// Sabhi zaruri functions aur middleware import karein
+const { signup, login, getMe } = require('../controllers/auth.controller.js');
+const protectRoute = require('../middleware/protectRoute.js');
 
 const router = express.Router();
 
-// Email/Password routes (ye pehle se hain)
+// Email/Password routes
 router.post('/signup', signup);
 router.post('/login', login);
 
-// -- Google OAuth Routes --
-
-// 1. Ye route user ko Google login page par bhejega
+// Google OAuth Routes
 router.get('/google', passport.authenticate('google', {
-    scope: ['profile', 'email'] // Hume user se kya-kya information chahiye
+    scope: [
+        'profile', 
+        'email',
+        'https://www.googleapis.com/auth/business.manage' // <-- YE NAYI PERMISSION HAI
+    ],
+    accessType: 'offline', // Refresh token ke liye zaruri
+    prompt: 'consent'      // Naye permissions ke liye user se dobara poochne ke liye
 }));
 
-// 2. Google is route par user ko wapas bhejega
 router.get('/google/callback', passport.authenticate('google', { session: false }), (req, res) => {
-    // Jab Passport user ko verify kar leta hai, to wo user 'req.user' me aa jata hai
-    // Ab hum us user ke liye apna JWT token banayenge
     const token = jwt.sign({ id: req.user._id }, process.env.JWT_SECRET, {
         expiresIn: '1d'
     });
-
-    // Hum user ko frontend par ek specific route par redirect karenge aur token URL me bhej denge
     res.redirect(`http://localhost:5173/login-success?token=${token}`);
 });
+
+// Route to get user details using a token
+router.get('/me', protectRoute, getMe);
 
 module.exports = router;

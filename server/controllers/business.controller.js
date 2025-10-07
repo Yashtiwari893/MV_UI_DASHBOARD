@@ -2,6 +2,7 @@ const Business = require('../models/business.model.js');
 const User = require('../models/user.model.js');
 
 const onboardBusiness = async (req, res) => {
+    console.log("User data from middleware:", req.user);
     try {
         const { businessName, businessType, website } = req.body;
         const ownerId = req.user._id; // Ye ID hume protectRoute middleware se mili

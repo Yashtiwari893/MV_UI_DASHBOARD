@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import axios from 'axios';
 import { useAuthContext } from '../context/AuthContext';
 import toast from 'react-hot-toast';
+import api from '../api/axiosInstance';
 
 const useOnboard = () => {
     const [loading, setLoading] = useState(false);
@@ -15,21 +15,33 @@ const useOnboard = () => {
 
         setLoading(true);
         try {
-            // LocalStorage se token nikalna
-            const token = JSON.parse(localStorage.getItem("mv-digital-user"))?.token;
+            // Token ko headers me bhejna
+            const token = authUser?.token || JSON.parse(localStorage.getItem("mv-digital-user"))?.token;
 
-            const res = await axios.post("http://localhost:8080/api/business/onboard", 
-            { businessName, businessType, website }, 
-            {
-                headers: {
-                    Authorization: `Bearer ${token}` // Token ko header me bhejna
+            if (!token) {
+                toast.error("User not authenticated");
+                return false;
+            }
+
+            const res = await api.post(
+                "/api/business/onboard",
+                { businessName, businessType, website },
+                {
+                    headers: { Authorization: `Bearer ${token}` }
                 }
-            });
+            );
 
             // Onboarding complete ho gayi hai, to user ka local data update karein
-            const updatedUser = { ...authUser, onboardingComplete: true };
-            localStorage.setItem("mv-digital-user", JSON.stringify(updatedUser));
-            setAuthUser(updatedUser);
+            const updatedAuthData = {
+                token,
+                user: {
+                    ...((authUser && authUser.user) || {}),
+                    onboardingComplete: true
+                }
+            };
+
+            localStorage.setItem("mv-digital-user", JSON.stringify(updatedAuthData));
+            setAuthUser(updatedAuthData);
 
             toast.success("Business details saved!");
             return true;

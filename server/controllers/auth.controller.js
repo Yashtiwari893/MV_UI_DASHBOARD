@@ -2,7 +2,7 @@ const User = require('../models/user.model.js');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
-// Signup function (Updated)
+// Signup function
 const signup = async (req, res) => {
     try {
         const { name, email, password } = req.body;
@@ -27,23 +27,18 @@ const signup = async (req, res) => {
 
         const savedUser = await newUser.save();
 
-        // --- NAYA CODE START ---
-        // User save hone ke baad token banayein
         const tokenPayload = { id: savedUser._id };
         const token = jwt.sign(tokenPayload, process.env.JWT_SECRET, {
             expiresIn: '1d'
         });
 
-        // Response se password hatayein
         const userResponse = savedUser.toObject();
         delete userResponse.password;
-        // --- NAYA CODE END ---
 
-        // Response ko update karein
         res.status(201).json({
             message: 'User created successfully',
-            user: userResponse, // Pura user object (bina password ke)
-            token: token      // Aur token
+            user: userResponse,
+            token: token
         });
 
     } catch (error) {
@@ -52,7 +47,7 @@ const signup = async (req, res) => {
     }
 };
 
-// Login function (No changes)
+// Login function (Updated Response)
 const login = async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -67,22 +62,18 @@ const login = async (req, res) => {
             return res.status(400).json({ message: 'Invalid credentials' });
         }
 
-        const tokenPayload = {
-            id: user._id,
-        };
-
+        const tokenPayload = { id: user._id };
         const token = jwt.sign(tokenPayload, process.env.JWT_SECRET, {
             expiresIn: '1d'
         });
 
+        const userResponse = user.toObject();
+        delete userResponse.password;
+
         res.status(200).json({
             message: "Logged in successfully",
             token: token,
-            user: {
-                id: user._id,
-                name: user.name,
-                email: user.email
-            }
+            user: userResponse // Yahan bhi poora user object bhej rahe hain
         });
 
     } catch (error) {
@@ -91,4 +82,14 @@ const login = async (req, res) => {
     }
 };
 
-module.exports = { signup, login };
+// getMe function
+const getMe = async (req, res) => {
+    try {
+        res.status(200).json(req.user);
+    } catch (error) {
+        console.error("Error in getMe: ", error.message);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+module.exports = { signup, login, getMe };

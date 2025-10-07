@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import axios from 'axios';
 import { useAuthContext } from '../context/AuthContext';
 import toast from 'react-hot-toast';
+import api from '../api/axiosInstance';
 
 const useSignup = () => {
     const [loading, setLoading] = useState(false);
@@ -16,17 +16,14 @@ const useSignup = () => {
 
         setLoading(true);
         try {
-            const res = await axios.post("http://localhost:8080/api/auth/signup", {
-                name,
-                email,
-                password,
-            });
-
+            const res = await api.post("/api/auth/signup", { name, email, password });
             const data = res.data;
 
-            // User data ko localStorage aur context me save karna
-            localStorage.setItem("mv-digital-user", JSON.stringify(data.user));
-            setAuthUser(data.user);
+            // Full authData object with user and token
+            const authData = { user: data.user, token: data.token };
+
+            localStorage.setItem("mv-digital-user", JSON.stringify(authData));
+            setAuthUser(authData);
 
             toast.success("Signup successful!");
             return true;

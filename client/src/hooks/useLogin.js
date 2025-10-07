@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import axios from 'axios';
 import { useAuthContext } from '../context/AuthContext';
 import toast from 'react-hot-toast';
+import api from '../api/axiosInstance';
 
 const useLogin = () => {
     const [loading, setLoading] = useState(false);
@@ -15,18 +15,17 @@ const useLogin = () => {
 
         setLoading(true);
         try {
-            const res = await axios.post("http://localhost:8080/api/auth/login", {
-                email,
-                password,
-            });
-
+            const res = await api.post("/api/auth/login", { email, password });
             const data = res.data;
 
-            localStorage.setItem("mv-digital-user", JSON.stringify(data.user));
-            setAuthUser(data.user);
+            // Full authData object with user and token
+            const authData = { user: data.user, token: data.token };
+
+            localStorage.setItem("mv-digital-user", JSON.stringify(authData));
+            setAuthUser(authData);
 
             toast.success("Logged in successfully!");
-            return data.user; // User data return karenge taaki page redirect kar sakein
+            return data.user;
 
         } catch (error) {
             toast.error(error.response?.data?.message || "Login failed");
