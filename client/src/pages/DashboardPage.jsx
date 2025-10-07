@@ -43,17 +43,8 @@ const ActivityRow = ({ item }) => {
 
 const DashboardPage = () => {
     // Animation Variants for Framer Motion
-    const containerVariants = {
-        hidden: { opacity: 0 },
-        visible: {
-            opacity: 1,
-            transition: { staggerChildren: 0.08 }
-        }
-    };
-    const itemVariants = {
-        hidden: { y: 20, opacity: 0 },
-        visible: { y: 0, opacity: 1 }
-    };
+    const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.08 } } };
+    const itemVariants = { hidden: { y: 20, opacity: 0 }, visible: { y: 0, opacity: 1 } };
 
     return (
         <motion.div
@@ -67,10 +58,7 @@ const DashboardPage = () => {
             </motion.div>
 
             {/* Stats Cards Section */}
-            <motion.div
-                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
-                variants={containerVariants}
-            >
+            <motion.div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8" variants={containerVariants}>
                 <motion.div variants={itemVariants}><StatsCard title="Total Reviews" value="238" Icon={FaStar} change="+12%" changeType="increase" /></motion.div>
                 <motion.div variants={itemVariants}><StatsCard title="Avg. Rating" value="4.7 ★" Icon={FaStore} change="+0.1" changeType="increase" /></motion.div>
                 <motion.div variants={itemVariants}><StatsCard title="Profile Views (7d)" value="3,420" Icon={FaEye} change="+18%" changeType="increase" /></motion.div>
@@ -83,7 +71,7 @@ const DashboardPage = () => {
                     <GrowthChart />
                 </motion.div>
 
-                {/* Quick Tasks & Actions */}
+                {/* Quick Actions */}
                 <motion.div variants={itemVariants} className="bg-theme-card/50 border border-white/10 rounded-2xl p-6 flex flex-col gap-4">
                     <h3 className="font-bold text-lg text-white">Quick Actions</h3>
                     <NavLink to="/content-studio" className="w-full text-center bg-theme-accent/80 text-theme-bg font-bold py-3 px-5 rounded-lg transition-all duration-300 hover:bg-theme-accent">
