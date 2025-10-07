@@ -1,11 +1,13 @@
 import React from 'react';
+import { Navigate } from 'react-router-dom';
+import { useAuthContext } from '../context/AuthContext';
 
 const HomePage = () => {
-  return (
-    <div className="flex justify-center items-center h-screen">
-      <h1 className="text-4xl font-bold text-blue-600">Welcome to MV Digital Work AI</h1>
-    </div>
-  );
+    const { authUser } = useAuthContext();
+    
+    // Agar user logged in hai (authUser object मौजूद hai), to use '/dashboard' par bhejo
+    // Varna, use '/login' page par bhejo
+    return authUser ? <Navigate to="/dashboard" /> : <Navigate to="/login" />;
 };
 
 export default HomePage;

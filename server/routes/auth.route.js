@@ -32,5 +32,26 @@ router.get('/google/callback', passport.authenticate('google', { session: false 
 
 // Route to get user details using a token
 router.get('/me', protectRoute, getMe);
+router.get('/facebook', passport.authenticate('facebook', { 
+    scope: [
+        'email',
+        'pages_show_list',      // <-- NAYI PERMISSION: User ke pages ki list dekhne ke liye
+        'pages_manage_posts'    // <-- NAYI PERMISSION: User ke pages par post karne ke liye
+    ] 
+}));
+router.get('/facebook/callback',
+    passport.authenticate('facebook', {
+        session: false,
+        failureRedirect: '/login' // Agar user permission deny kare to login page par bhej do
+    }),
+    (req, res) => {
+        // Successful authentication, JWT generate karo aur redirect karo
+        const token = jwt.sign({ id: req.user._id }, process.env.JWT_SECRET, {
+            expiresIn: '1d'
+        });
+        res.redirect(`http://localhost:5173/login-success?token=${token}`);
+    }
+);
+
 
 module.exports = router;

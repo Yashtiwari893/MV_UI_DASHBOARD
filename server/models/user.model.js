@@ -13,9 +13,10 @@ const userSchema = new mongoose.Schema({
     password: {
         type: String, // Password is not required for Google/social users
     },
+    facebookId: { type: String },
+    facebookAccessToken: { type: String },
     // Google/FB/IG se login ke liye fields
     googleId: { type: String },
-    facebookId: { type: String },
     instagramId: { type: String },
     googleAccessToken: { type: String },
     googleRefreshToken: { type: String },

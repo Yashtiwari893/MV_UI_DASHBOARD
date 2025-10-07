@@ -1,284 +1,118 @@
-import React, { useState, useEffect } from 'react';
-import Sidebar from '../components/Sidebar';
-import Header from '../components/Header';
+import React from 'react';
+import { motion } from 'framer-motion';
 import StatsCard from '../components/StatsCard';
-import ReviewCard from '../components/ReviewCard';
-import api from '../api/axiosInstance';
+import GrowthChart from '../components/GrowthChart';
 import { FaEye, FaStar, FaUserFriends, FaStore } from 'react-icons/fa';
-import toast from 'react-hot-toast';
+import { NavLink } from 'react-router-dom';
 
-// --- Mock Reviews ---
-const mockReviews = [
-    { id: 1, reviewId: 'review123', authorName: 'Rohan Sharma', rating: 5, comment: 'The cappuccino was perfect! Best coffee shop in the area.' },
-    { id: 2, reviewId: 'review456', authorName: 'Priya Mehta', rating: 4, comment: 'Great ambiance and friendly staff. The music was a bit loud.' },
-    { id: 3, reviewId: 'review789', authorName: 'Ankit Desai', rating: 3, comment: 'The service was a little slow during peak hours.' }
+// Realistic mock data for the activity table
+const recentActivity = [
+    { time: "2h ago", activity: "Replied to Google review (Aman ⭐⭐⭐⭐⭐)", status: "Done" },
+    { time: "5h ago", activity: "Scheduled Instagram post for 7 PM", status: "Queued" },
+    { time: "Yesterday", activity: "New review received (Neha ⭐⭐)", status: "Pending" },
+    { time: "Yesterday", activity: "Profile photo updated on GBP", status: "Success" },
 ];
 
-const DashboardPage = () => {
-    // --- Business Data States ---
-    const [accounts, setAccounts] = useState([]);
-    const [loading, setLoading] = useState(true);
-
-    // --- Review Reply Generator States ---
-    const [reviewInput, setReviewInput] = useState('');
-    const [seoKeywords, setSeoKeywords] = useState('');
-    const [aiReply, setAiReply] = useState('');
-    const [isGenerating, setIsGenerating] = useState(false);
-    const [selectedReview, setSelectedReview] = useState(null);
-    const [isPosting, setIsPosting] = useState(false);
-
-    // --- Social Post Generator States ---
-    const [postTopic, setPostTopic] = useState('');
-    const [generatedPost, setGeneratedPost] = useState(null);
-    const [isGeneratingPost, setIsGeneratingPost] = useState(false);
-
-    // --- Fetch GMB Accounts (Mock or API) ---
-    useEffect(() => {
-        const fetchGmbAccounts = async () => {
-            try {
-                setLoading(true);
-                const res = await api.get('/api/gmb/accounts');
-                setAccounts(res.data);
-            } catch (error) {
-                console.error("Failed to fetch GMB accounts", error);
-                toast.error(error.response?.data?.message || "Could not fetch GMB data.");
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchGmbAccounts();
-    }, []);
-
-    // --- Select Review ---
-    const handleReviewSelect = (review) => {
-        setSelectedReview(review);
-        setReviewInput(review.comment);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    };
-
-    // --- Generate AI Review Reply ---
-    const handleGenerateReply = async (e) => {
-        e.preventDefault();
-        if (!reviewInput) {
-            toast.error("Please enter a review to reply to.");
-            return;
-        }
-        setIsGenerating(true);
-        setAiReply('');
-        try {
-            const res = await api.post('/api/ai/generate-reply', {
-                reviewText: reviewInput,
-                businessName: "The Chill Point Cafe",
-                seoKeywords: seoKeywords
-            });
-            setAiReply(res.data.reply);
-        } catch (error) {
-            toast.error("Failed to generate reply.");
-        } finally {
-            setIsGenerating(false);
-        }
-    };
-
-    // --- Post Reply to GMB (Mock API) ---
-    const handlePostReply = async () => {
-        if (!aiReply || !selectedReview) {
-            toast.error("Please generate a reply first.");
-            return;
-        }
-        setIsPosting(true);
-        try {
-            const res = await api.post(`/api/gmb/reviews/${selectedReview.reviewId}/reply`, {
-                replyText: aiReply
-            });
-            toast.success(res.data.message || "Reply posted successfully!");
-            setAiReply('');
-            setSelectedReview(null);
-            setReviewInput('');
-        } catch (error) {
-            toast.error("Failed to post reply.");
-        } finally {
-            setIsPosting(false);
-        }
-    };
-
-    // --- Generate Social Post ---
-    const handleGeneratePost = async (e) => {
-        e.preventDefault();
-        if (!postTopic) {
-            toast.error("Please enter a topic for the post.");
-            return;
-        }
-        setIsGeneratingPost(true);
-        setGeneratedPost(null);
-        try {
-            const res = await api.post('/api/ai/generate-post', {
-                topic: postTopic,
-                businessName: "The Chill Point Cafe",
-            });
-            setGeneratedPost(res.data);
-            toast.success("Post generated successfully!");
-        } catch (error) {
-            toast.error("Failed to generate post.");
-        } finally {
-            setIsGeneratingPost(false);
+const ActivityRow = ({ item }) => {
+    const getStatusChipStyle = (status) => {
+        switch (status) {
+            case 'Success':
+            case 'Done':
+                return 'bg-theme-ok/10 text-theme-ok border-theme-ok/20';
+            case 'Queued':
+                return 'bg-theme-accent/10 text-theme-accent border-theme-accent/20';
+            case 'Pending':
+                return 'bg-theme-warn/10 text-theme-warn border-theme-warn/20';
+            default:
+                return 'bg-theme-muted/10 text-theme-muted border-theme-muted/20';
         }
     };
 
     return (
-        <div className="flex h-screen bg-[#211f1f] text-white font-sans">
-            <Sidebar />
-            <div className="flex-1 flex flex-col overflow-hidden">
-                <Header />
+        <tr className="border-b border-white/5">
+            <td className="py-3 pr-4 text-sm text-theme-muted">{item.time}</td>
+            <td className="py-3 pr-4 text-white">{item.activity}</td>
+            <td className="py-3 text-right">
+                <span className={`px-2 py-1 text-xs font-semibold rounded-full border ${getStatusChipStyle(item.status)}`}>
+                    {item.status}
+                </span>
+            </td>
+        </tr>
+    );
+};
 
-                <main className="flex-1 overflow-x-hidden overflow-y-auto bg-dark-bg p-8">
-                    <h2 className="text-2xl font-bold mb-6">Overview</h2>
+const DashboardPage = () => {
+    // Animation Variants for Framer Motion
+    const containerVariants = {
+        hidden: { opacity: 0 },
+        visible: {
+            opacity: 1,
+            transition: { staggerChildren: 0.08 }
+        }
+    };
+    const itemVariants = {
+        hidden: { y: 20, opacity: 0 },
+        visible: { y: 0, opacity: 1 }
+    };
 
-                    {/* --- Stats Section --- */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 my-6">
-                        {loading ? (
-                            <p>Loading business info...</p>
-                        ) : accounts.length > 0 ? (
-                            <>
-                                <StatsCard title="Business Name" value={accounts[0]?.displayName || 'N/A'} Icon={FaStore} />
-                                <StatsCard title="Avg. Rating" value="4.7 ★" Icon={FaStar} />
-                                <StatsCard title="Total Followers" value="1,820" Icon={FaUserFriends} />
-                                <StatsCard title="Total Views" value="718" Icon={FaEye} />
-                            </>
-                        ) : (
-                            <p>No Google Business account found.</p>
-                        )}
-                    </div>
+    return (
+        <motion.div
+            initial="hidden"
+            animate="visible"
+            variants={containerVariants}
+        >
+            <motion.div variants={itemVariants}>
+                <h1 className="text-3xl font-bold text-white">Dashboard</h1>
+                <p className="text-theme-muted mt-2 mb-8">Here's a glance at your business performance.</p>
+            </motion.div>
 
-                    {/* --- AI Tools Section (2 Columns) --- */}
-                    <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
-                        {/* --- AI Review Reply Generator --- */}
-                        <div className="bg-dark-card p-6 rounded-lg shadow-neon-sm border border-dark-border">
-                            <h3 className="text-xl font-bold mb-4">AI Review Reply Generator</h3>
-                            <form onSubmit={handleGenerateReply}>
-                                <div className="mb-4">
-                                    <label className="block text-gray-400 text-sm font-bold mb-2" htmlFor="seoKeywords">
-                                        SEO Keywords (comma-separated)
-                                    </label>
-                                    <input
-                                        id="seoKeywords"
-                                        type="text"
-                                        className="w-full p-3 bg-gray-700 rounded-lg border border-dark-border focus:outline-none focus:border-primary-blue"
-                                        placeholder="e.g., best cafe in surat, fresh coffee"
-                                        value={seoKeywords}
-                                        onChange={(e) => setSeoKeywords(e.target.value)}
-                                    />
-                                </div>
+            {/* Stats Cards Section */}
+            <motion.div
+                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
+                variants={containerVariants}
+            >
+                <motion.div variants={itemVariants}><StatsCard title="Total Reviews" value="238" Icon={FaStar} change="+12%" changeType="increase" /></motion.div>
+                <motion.div variants={itemVariants}><StatsCard title="Avg. Rating" value="4.7 ★" Icon={FaStore} change="+0.1" changeType="increase" /></motion.div>
+                <motion.div variants={itemVariants}><StatsCard title="Profile Views (7d)" value="3,420" Icon={FaEye} change="+18%" changeType="increase" /></motion.div>
+                <motion.div variants={itemVariants}><StatsCard title="Post Reach (7d)" value="12,450" Icon={FaUserFriends} change="-5%" changeType="decrease" /></motion.div>
+            </motion.div>
 
-                                <div className="mb-4">
-                                    <label className="block text-gray-400 text-sm font-bold mb-2" htmlFor="reviewInput">
-                                        Customer Review
-                                    </label>
-                                    <textarea
-                                        id="reviewInput"
-                                        className="w-full p-3 bg-gray-700 rounded-lg border border-dark-border focus:outline-none focus:border-primary-blue"
-                                        rows="3"
-                                        placeholder="Paste a customer review here..."
-                                        value={reviewInput}
-                                        onChange={(e) => setReviewInput(e.target.value)}
-                                    ></textarea>
-                                </div>
+            <motion.div className="grid grid-cols-1 lg:grid-cols-3 gap-8" variants={containerVariants}>
+                {/* Main Growth Chart */}
+                <motion.div className="lg:col-span-2" variants={itemVariants}>
+                    <GrowthChart />
+                </motion.div>
 
-                                <button
-                                    type="submit"
-                                    className="bg-primary-purple hover:bg-violet-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50"
-                                    disabled={isGenerating}
-                                >
-                                    {isGenerating ? 'Generating...' : 'Generate Reply'}
-                                </button>
-                            </form>
+                {/* Quick Tasks & Actions */}
+                <motion.div variants={itemVariants} className="bg-theme-card/50 border border-white/10 rounded-2xl p-6 flex flex-col gap-4">
+                    <h3 className="font-bold text-lg text-white">Quick Actions</h3>
+                    <NavLink to="/content-studio" className="w-full text-center bg-theme-accent/80 text-theme-bg font-bold py-3 px-5 rounded-lg transition-all duration-300 hover:bg-theme-accent">
+                        Generate New Post
+                    </NavLink>
+                    <NavLink to="/integrations" className="w-full text-center bg-white/10 text-white font-bold py-3 px-5 rounded-lg transition-all duration-300 hover:bg-white/20">
+                        Manage Integrations
+                    </NavLink>
+                </motion.div>
+            </motion.div>
 
-                            {aiReply && (
-                                <div className="mt-4 border-t border-dark-border pt-4">
-                                    <h4 className="font-semibold text-gray-400">AI Generated Reply:</h4>
-                                    <p className="mt-2 text-gray-300 whitespace-pre-wrap">{aiReply}</p>
-
-                                    <button
-                                        onClick={handlePostReply}
-                                        className="mt-4 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50"
-                                        disabled={isPosting}
-                                    >
-                                        {isPosting ? 'Posting...' : 'Post Reply to GMB'}
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* --- AI Social Post Generator --- */}
-                        <div className="bg-dark-card p-6 rounded-lg shadow-neon-sm border border-dark-border">
-                            <h3 className="text-xl font-bold mb-4">AI Social Post Generator</h3>
-                            <form onSubmit={handleGeneratePost}>
-                                <div className="mb-4">
-                                    <label className="block text-gray-400 text-sm font-bold mb-2" htmlFor="postTopic">
-                                        Post Topic
-                                    </label>
-                                    <input
-                                        id="postTopic"
-                                        type="text"
-                                        className="w-full p-3 bg-gray-700 rounded-lg border border-dark-border focus:outline-none focus:border-primary-blue"
-                                        placeholder="e.g., Our new weekend coffee discount"
-                                        value={postTopic}
-                                        onChange={(e) => setPostTopic(e.target.value)}
-                                    />
-                                </div>
-                                <button
-                                    type="submit"
-                                    className="bg-primary-purple hover:bg-violet-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50"
-                                    disabled={isGeneratingPost}
-                                >
-                                    {isGeneratingPost ? 'Generating Post...' : 'Generate Post'}
-                                </button>
-                            </form>
-
-                            {generatedPost && (
-                                <div className="mt-4 border-t border-dark-border pt-4">
-                                    <h4 className="font-semibold text-gray-400">AI Generated Caption:</h4>
-                                    <p className="mt-2 text-gray-300 whitespace-pre-wrap">{generatedPost.caption}</p>
-
-                                    {/* --- SAFETY CHECK for Hashtags --- */}
-                                    {Array.isArray(generatedPost?.hashtags) && generatedPost.hashtags.length > 0 ? (
-                                        <>
-                                            <h4 className="font-semibold text-gray-400 mt-4">Suggested Hashtags:</h4>
-                                            <div className="flex flex-wrap gap-2 mt-2">
-                                                {generatedPost.hashtags.map((tag, index) => (
-                                                    <span
-                                                        key={index}
-                                                        className="bg-gray-700 text-sm text-gray-300 px-2 py-1 rounded"
-                                                    >
-                                                        {tag}
-                                                    </span>
-                                                ))}
-                                            </div>
-                                        </>
-                                    ) : (
-                                        <p className="text-gray-500 mt-2">No hashtags suggested.</p>
-                                    )}
-                                </div>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* --- Recent Activity Section --- */}
-                    <div className="mt-8 bg-dark-card p-6 rounded-lg shadow-neon-sm border border-dark-border">
-                        <h3 className="text-xl font-bold mb-4">Recent Activity (Mock Data)</h3>
-                        <div>
-                            {mockReviews.map((review) => (
-                                <ReviewCard
-                                    key={review.id}
-                                    review={review}
-                                    onGenerateReply={() => handleReviewSelect(review)}
-                                />
-                            ))}
-                        </div>
-                    </div>
-                </main>
-            </div>
-        </div>
+            <motion.div variants={itemVariants} className="mt-8 bg-theme-card/50 border border-white/10 rounded-2xl p-6">
+                <h3 className="font-bold text-lg text-white mb-4">Recent Activity</h3>
+                <table className="w-full table-auto">
+                    <thead>
+                        <tr className="text-left">
+                            <th className="py-2 pr-4 font-semibold text-sm text-theme-muted">Time</th>
+                            <th className="py-2 pr-4 font-semibold text-sm text-theme-muted">Activity</th>
+                            <th className="py-2 text-right font-semibold text-sm text-theme-muted">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {recentActivity.map((item, index) => <ActivityRow key={index} item={item} />)}
+                    </tbody>
+                </table>
+            </motion.div>
+        </motion.div>
     );
 };
 
 export default DashboardPage;
+

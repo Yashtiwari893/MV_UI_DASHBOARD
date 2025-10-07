@@ -1,4 +1,4 @@
-// STEP 1: dotenv ko sabse pehle import aur configure karein
+// STEP 1: dotenv ko sabse pehle import aur configure karein.
 const dotenv = require('dotenv');
 dotenv.config();
 
@@ -11,8 +11,10 @@ const passport = require('passport');
 const authRoutes = require('./routes/auth.route.js');
 const businessRoutes = require('./routes/business.route.js');
 const gmbRoutes = require('./routes/gmb.route.js');
-const aiRoutes = require('./routes/ai.route.js'); // Ab isko yahan import karein
-require('./config/passport-setup.js'); 
+const aiRoutes = require('./routes/ai.route.js');
+const facebookRoutes = require('./routes/facebook.route.js');
+require('./config/passport-setup.js');
+
 
 const app = express();
 
@@ -26,6 +28,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/business', businessRoutes);
 app.use('/api/gmb', gmbRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/facebook', facebookRoutes);
 
 // Database Connection
 const MONGO_URI = process.env.MONGO_URI;
@@ -38,3 +41,4 @@ const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
+
