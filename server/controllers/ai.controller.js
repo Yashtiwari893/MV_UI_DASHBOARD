@@ -123,4 +123,30 @@ const generateImage = async (req, res) => {
         res.status(500).json({ message: "Failed to generate image." });
     }
 };
-module.exports = { generateReply, generateSocialPost, generateImage };
+const optimizeKeywords = async (req, res) => {
+    try {
+        const { inputText } = req.body;
+        if (!inputText) {
+            return res.status(400).json({ message: "Input text is required." });
+        }
+
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+
+        const prompt = `You are an expert digital marketing strategist specializing in SEO and social media trends.
+Optimize the following text for SEO by suggesting relevant keywords and phrases:
+
+${inputText}
+`;
+
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        const optimizedKeywords = response.text().trim();
+
+        res.status(200).json({ keywords: optimizedKeywords.split(", ") });
+    } catch (error) {
+        console.error("Error optimizing keywords:", error);
+        res.status(500).json({ message: "Failed to optimize keywords." });
+    }
+};
+
+module.exports = { generateReply, generateSocialPost, generateImage, optimizeKeywords };
